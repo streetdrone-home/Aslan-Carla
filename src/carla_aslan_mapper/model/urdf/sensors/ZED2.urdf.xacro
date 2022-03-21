@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+
+<!--
+Copyright (c) 2020, STEREOLABS.
+
+All rights reserved.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="ZED2">
+    <xacro:macro name="ZED2" params="*origin camera_name:=zed2 parent:=chassis">
+
+        <!-- Arguments -->
+        <xacro:arg name="camera_name"   default="zed2" />
+
+        <!-- Properties -->
+        <xacro:property name="M_PI"     value="3.1415926535897931" />
+        <xacro:property name="baseline" value="0.12" />
+
+        <!-- Camera Center -->
+        <joint name="$(arg camera_name)_camera_center_joint" type="fixed">
+            <xacro:insert_block name="origin"/>
+            <parent link="${parent}"/>
+            <child link="$(arg camera_name)_camera_center"/>
+        </joint>
+
+        <link name="$(arg camera_name)_camera_center">
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <!--mesh filename="file://$(find sd_truck_description)/meshes/zed2.stl"/-->
+                    <box size="0.175 0.030 0.030"/>
+                </geometry>
+                <material name="red" />
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <!--mesh filename="file://$(find sd_truck_description)/meshes/zed2.stl"/-->
+                    <box size="0.0175 0.0030 0.0030"/>
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="1e-5" />
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+            </inertial>
+        </link>
+
+    <!-- Left Camera -->
+        <joint name="$(arg camera_name)_left_camera_joint" type="fixed">
+            <parent link="$(arg camera_name)_camera_center"/>
+            <child link="$(arg camera_name)_left_camera_frame"/>
+            <origin xyz="0 ${baseline/2} 0" rpy="0 0 0" />
+        </joint>
+
+        <link name="$(arg camera_name)_left_camera_frame" />
+
+        <joint name="$(arg camera_name)_left_camera_optical_joint" type="fixed">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <parent link="$(arg camera_name)_left_camera_frame" />
+            <child link="$(arg camera_name)_left_camera_link_optical" />
+        </joint>
+        <link name="$(arg camera_name)_left_camera_link_optical" />
+
+    <!-- Right Camera -->
+        <joint name="$(arg camera_name)_right_camera_joint" type="fixed">
+            <parent link="$(arg camera_name)_camera_center"/>
+            <child link="$(arg camera_name)_right_camera_frame"/>
+            <origin xyz="0 -${baseline/2} 0" rpy="0 0 0" />
+        </joint>
+
+        <link name="$(arg camera_name)_right_camera_frame" />
+
+        <joint name="$(arg camera_name)_right_camera_optical_joint" type="fixed">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <parent link="$(arg camera_name)_right_camera_frame" />
+            <child link="$(arg camera_name)_right_camera_link_optical" />
+        </joint>
+
+        <link name="$(arg camera_name)_right_camera_link_optical" />
+
+        <gazebo reference="$(arg camera_name)_left_camera_link_optical">
+            <sensor type="multicamera" name="$(arg camera_name)_camera">
+            <update_rate>30.0</update_rate>
+            <camera name="left">
+                <horizontal_fov>${110.0*M_PI/180.0}</horizontal_fov>
+                <image>
+                    <width>2560</width>
+                    <height>720</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>300</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <camera name="right">
+                <horizontal_fov>${110.0*M_PI/180.0}</horizontal_fov>
+                <image>
+                    <width>2560</width>
+                    <height>720</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>300</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <plugin name="$(arg camera_name)_camera_controller" filename="libgazebo_ros_multicamera.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>0.0</updateRate>
+                <cameraName>sd_truck/${camera_name}_camera</cameraName>
+                <imageTopicName>image_raw</imageTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <frameName>${camera_name}_left_camera_link_optical</frameName>
+                <rightFrameName>${camera_name}_right_camera_link_optical</rightFrameName>
+                <hackBaseline>0.07</hackBaseline>
+                <distortionK1>0.0</distortionK1>
+                <distortionK2>0.0</distortionK2>
+                <distortionK3>0.0</distortionK3>
+                <distortionT1>0.0</distortionT1>
+                <distortionT2>0.0</distortionT2>
+            </plugin>
+            </sensor>
+        </gazebo>
+    </xacro:macro>
+</robot>

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!--Send the urdf to param server-->
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find carla_aslan_mapper)/model/urdf/sd_env200.urdf.xacro'"/>
+
+  <!-- Static Transform Publisher -->
+  <node pkg="tf" type="static_transform_publisher" name="ego_vehicle_to_base_link" args="1 0 0 0 0 0 1 ego_vehicle base_link 100" />
+
+  <!-- Robot State Publisher - Uses URDF and Joint States to compute Forward Kinematics as Transforms -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+	
+  <!-- Joint State Publisher - Publishes Joint Positions -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+
+  <!-- Ackerman Control -->
+  <include file="$(find carla_ackermann_control)/launch/carla_ackermann_control.launch"/>
+
+  <!-- Carla ROS Bridge -->
+  <include file="$(find carla_ros_bridge)/launch/carla_ros_bridge_with_example_ego_vehicle.launch">
+    <arg name="timeout" default='30'/>
+  </include>
+
+  <!-- Mapping Node: CARLA-ASLAN -->
+  <node pkg="carla_aslan_mapper" type="Carla_Aslan_Mapping.py" name="Carla_Aslan_Mapping" output="screen" />
+
+  <!-- RVIZ - Visualization -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find carla_aslan_mapper)/rviz/carla_ros_rviz.rviz"/>
+
+</launch>

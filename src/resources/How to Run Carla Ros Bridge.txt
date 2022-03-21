@@ -1,0 +1,10 @@
+roslaunch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch timeout:=30
+
+python ~/carla_linux_build/PythonAPI/examples/generate_traffic.py -n 100
+
+rostopic list
+
+roslaunch carla_ackermann_control carla_ackermann_control.launch
+
+rostopic pub /carla/ego_vehicle/ackermann_cmd ackermann_msgs/AckermannDrive "{steering_angle: 0.0, steering_angle_velocity: 0.0, speed: 10, acceleration: 0.0, jerk: 0.0}" -r 10
+

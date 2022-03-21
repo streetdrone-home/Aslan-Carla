@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="van">
+  
+  <material name="white">
+    <color rgba="1.0 1.0 1.0 1.0"/>
+  </material>
+
+  <material name="sd_green">
+    <color rgba="0.45 0.73 0.25 1.0"/>
+  </material>
+
+  <!-- BASE LINK IS CENTRE OF REAR AXLE -->
+  <link name="base_link">
+    <visual>
+      <origin rpy="0 0 ${pi/2}" xyz="1.35 0.0 -0.35"/>
+      <geometry>
+        <mesh filename="package://carla_aslan_mapper/model/meshes/Nissan_Env200LP.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="sd_green"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 ${pi/2}" xyz="1.35 0.0 -0.35"/>
+      <geometry>
+        <mesh filename="package://carla_aslan_mapper/model/meshes/Nissan_Env200LP.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+</robot>

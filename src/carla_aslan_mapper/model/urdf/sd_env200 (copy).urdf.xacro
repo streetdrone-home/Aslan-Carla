@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="van">
+
+  <!-- USE THESE PROPERTY TO SET LINK NAMES -->
+  <xacro:property name="imu_link_name" value="imu_link" />
+  <xacro:property name="gps_link_name" value="gps_link" />
+  <xacro:property name="antenna_r_link_name" value="antenna_main" />
+  <xacro:property name="antenna_l_link_name" value="antenna_aux" />
+  <xacro:property name="lidar_link_name" value="velodyne" />
+  <xacro:property name="camera_link_name" value="zed2" />
+
+  <!-- EXTERNAL FILES -->
+  <xacro:include filename="$(find carla_aslan_mapper)/model/urdf/sensors/ZED2.urdf.xacro" />
+  
+  <material name="white">
+    <color rgba="1.0 1.0 1.0 1.0"/>
+  </material>
+
+  <material name="sd_green">
+    <color rgba="0.45 0.73 0.25 1.0"/>
+  </material>
+
+  <!-- BASE LINK IS CENTRE OF REAR AXLE -->
+  <link name="base_link">
+    <visual>
+      <origin rpy="0 0 ${pi/2}" xyz="1.35 0.0 -0.35"/>
+      <geometry>
+        <mesh filename="package://carla_aslan_mapper/model/meshes/Nissan_Env200LP.stl" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="sd_green"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 ${pi/2}" xyz="1.35 0.0 ${1.5/2}"/>
+      <geometry>
+        <box size="1.7 4.2 1.5"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- SENSORS -->
+  <link name="${imu_link_name}"> </link>
+  <joint name="${imu_link_name}_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="${imu_link_name}" />
+    <origin xyz="-0.25 -0.16 0.18" rpy="0 0 0" />
+  </joint>
+
+
+  <!-- oxts unit -->
+  <link name="${gps_link_name}"> </link>
+  <joint name="${gps_link_name}_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="${gps_link_name}" />
+    <origin xyz="-0.25 -0.16 0.18" rpy="0 0 0" />
+  </joint>
+
+  <link name="${antenna_r_link_name}"> </link>
+  <joint name="${antenna_r_link_name}_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="${antenna_r_link_name}" />
+    <origin xyz="0.17 0.5 1.68" rpy="0 0 0" />
+  </joint >
+
+  <link name="${antenna_l_link_name}"> </link>
+  <joint name="${antenna_l_link_name}_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="${antenna_l_link_name}" />
+    <origin xyz="0.17 -0.5 1.68" rpy="0 0 0" />
+  </joint >
+  
+  <link name="${lidar_link_name}"> </link>
+  <joint name="${lidar_link_name}_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="${lidar_link_name}" />
+    <origin xyz="0.564 0 2.352" rpy="0 0 0" />
+  </joint>
+
+  <xacro:ZED2 camera_name="${camera_link_name}" parent="base_link">
+    <origin xyz="1.707 0.0 1.662" rpy="0 0 0" />
+  </xacro:ZED2>
+
+</robot>

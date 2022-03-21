@@ -1,0 +1,84 @@
+<launch>
+  <param name="/use_sim_time" value="true"/>
+
+  <!--Send the urdf to param server-->
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find carla_aslan_mapper)/model/urdf/sd_env200.urdf.xacro'"/>
+
+  <!-- Static Transform Publisher -->
+  <node pkg="tf" type="static_transform_publisher" name="ego_vehicle_to_base_link" args="1.35 0 -0.35 0 0 0 1 base_link ego_vehicle 100" />
+
+  <!-- Robot State Publisher - Uses URDF and Joint States to compute Forward Kinematics as Transforms -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+  <!-- Joint State Publisher - Publishes Joint Positions -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+
+  <!-- CARLA connection -->
+  <arg name='host' default='localhost'/>
+  <arg name='port' default='2000'/>
+  <arg name='timeout' default='30'/>
+
+  <!-- Ego vehicle -->
+  <arg name='role_name' default='ego_vehicle'/>
+  <arg name="vehicle_filter" default='vehicle.*'/>
+  <arg name="spawn_point" default=""/><!-- use comma separated format "x,y,z,roll,pitch,yaw" -->
+
+  <!-- Map to load on startup (either a predefined CARLA town (e.g. 'Town01'), or a OpenDRIVE map file) -->
+  <arg name="town" default=''/>
+
+  <!-- Enable/disable passive mode -->
+  <arg name='passive' default=''/>
+
+  <!-- Synchronous mode-->
+  <arg name='synchronous_mode_wait_for_vehicle_control_command' default='False'/>
+  <arg name='fixed_delta_seconds' default='0.05'/>
+
+  <remap from="/carla/ego_vehicle/rgb_left/camera_info" to="/left/camera_info" />
+  <remap from="/carla/ego_vehicle/rgb_left/image" to="/left/image_raw" />
+
+  <remap from="/carla/ego_vehicle/rgb_right/camera_info" to="/right/camera_info" />
+  <remap from="/carla/ego_vehicle/rgb_right/image" to="/right/image_raw" />
+
+  <remap from="/carla/ego_vehicle/rgb_view/camera_info" to="/view/camera_info" />
+  <remap from="/carla/ego_vehicle/rgb_view/image" to="/view/image_raw" />
+
+  <remap from="/carla/ego_vehicle/imu" to="/imu/data" />
+  <remap from="/carla/ego_vehicle/gnss" to="/gps/fix" />
+
+  <include file="$(find carla_ros_bridge)/launch/carla_ros_bridge.launch">
+    <arg name='host' value='$(arg host)'/>
+    <arg name='port' value='$(arg port)'/>
+    <arg name='town' value='$(arg town)'/>
+    <arg name='timeout' value='$(arg timeout)'/>
+    <arg name='passive' value='$(arg passive)'/>
+    <arg name='synchronous_mode_wait_for_vehicle_control_command' value='$(arg synchronous_mode_wait_for_vehicle_control_command)'/>
+    <arg name='fixed_delta_seconds' value='$(arg fixed_delta_seconds)'/>
+  </include>
+
+  <!-- the ego vehicle, that will be controlled by an agent (e.g. carla_ad_agent) -->
+  <include file="$(find carla_spawn_objects)/launch/carla_spawn_objects.launch">
+    <arg name="objects_definition_file" value='$(find carla_aslan_mapper)/config/objects.json'/>
+    <arg name="spawn_point_ego_vehicle" value="$(arg spawn_point)"/>
+    <arg name="spawn_sensors_only" value="false" />
+  </include>
+
+  <!-- Mapping Node: CARLA-ASLAN -->
+  <node pkg="carla_aslan_mapper" type="Carla_Aslan_Mapping.py" name="Carla_Aslan_Mapping" output="screen" />
+
+  <!-- Transform from lidar to baselink -->
+  <include file="$(find aslan_gui)/launch/baselink_to_localiser.launch">
+    <arg name="x" value="0.7"/>
+    <arg name="y" value="0.0"/>
+    <arg name="z" value="2.6"/>
+    <arg name="yaw" value="0.0"/>
+    <arg name="pitch" value="0.0"/>
+    <arg name="roll" value="0.0"/>
+  </include>
+
+  <!-- RVIZ - Visualization -->
+  <arg name="rviz" default="true"/>
+  <group if="$(arg rviz)">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find carla_aslan_mapper)/rviz/carla_ros_rviz.rviz"/>
+  </group>
+
+</launch>
