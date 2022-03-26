@@ -41,7 +41,7 @@ To import a custom vehicle model:
 
 Follow the official instructions to install Carla on top of Unreal Engine:
 
-https://carla.readthedocs.io/en/latest/build_linux/
+https://carla.readthedocs.io/en/0.9.12/build_linux/
 
 #### Notes
 
