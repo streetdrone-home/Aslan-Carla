@@ -74,6 +74,8 @@ https://carla.readthedocs.io/en/0.9.12/build_linux/
 
 ### Add Nissan e-NV200 model to CARLA
 
+* Contact [Sander van Dijk](mailto:sander.vandijk@streetdrone.com) to obtain the model resources.
+
 * Go to the `resources` directory of this repository:
 
         cd src/Aslan-Carla/src/resources
